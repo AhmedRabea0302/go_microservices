@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 )
 
@@ -20,5 +21,8 @@ func (app *Config) routes() http.Handler {
 		MaxAge:           300, // Maximum time for browser to cache the response
 	}))
 
+	mux.Use(middleware.Heartbeat("/ping"))
+
+	mux.Post("/authenticate", app.Authenticate)
 	return mux
 }
