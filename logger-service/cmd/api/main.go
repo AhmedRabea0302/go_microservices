@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const (
@@ -29,6 +29,17 @@ func main() {
 	}
 
 	client = mongoClient
+
+	// Create a context inorder to disconnect
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	// Close connection
+	defer func() {
+		if err = client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
 }
 
 func connectToMongo() (*mongo.Client, error) {
