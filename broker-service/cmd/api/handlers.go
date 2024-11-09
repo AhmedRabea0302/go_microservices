@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -118,6 +119,8 @@ func (app *Config) LogItem(w http.ResponseWriter, entry LogPayload) {
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
+		log.Println("Can't do log service")
+
 		app.errorJSON(w, err)
 		return
 	}
