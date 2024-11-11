@@ -1,8 +1,11 @@
 package event
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -12,10 +15,9 @@ type Consumer struct {
 	queueName string
 }
 
-func NewConsumer(conn *amqp.Connection, queueName string) (Consumer, error) {
+func NewConsumer(conn *amqp.Connection) (Consumer, error) {
 	consumer := Consumer{
-		conn:      conn,
-		queueName: queueName,
+		conn: conn,
 	}
 
 	err := consumer.setUp()
@@ -56,7 +58,7 @@ func (consumer *Consumer) Listen(topics []string) error {
 		ch.QueueBind(
 			q.Name,
 			s,
-			"logis_topic",
+			"logic_topic",
 			false,
 			nil,
 		)
@@ -108,5 +110,28 @@ func handlePayload(payload Payload) {
 }
 
 func logEvent(entry Payload) error {
+	jsonData, _ := json.MarshalIndent(entry, "", "\t")
 
+	logServiceURL := "http://logger-service/log"
+	request, err := http.NewRequest("POST", logServiceURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Content-type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Println("Can't do log service")
+		return err
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		return err
+	}
+
+	return nil
 }

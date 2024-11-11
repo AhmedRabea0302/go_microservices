@@ -53,6 +53,16 @@ services:
       FROM_NAME: Fadlovich
       FROM_ADDRESS: Fadlovich@mail-service.com
 
+  listener-service:
+    build:
+      context: ./../listener-service
+      dockerfile: ./../listener-service/listener-service.dockerfile
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 1
+
+
   postgres:
     image: 'postgres:14.2'
     ports:
